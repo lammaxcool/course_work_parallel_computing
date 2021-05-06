@@ -21,7 +21,8 @@ if __name__ == '__main__':
     for path, indices in zip(path_to_execute, N_list):
         zip_obj = ZipFile(zip_path, 'r')
         root = Path(zip_obj, at=path)
-        files_to_cp = list(root.iterdir())[0 : 10]
+        files_to_cp = sorted(list(root.iterdir()), 
+                             key=lambda x: int(x.name.split('_')[0]))[0 : 10]
 
         for file in files_to_cp:
             curr_path = path + file.name

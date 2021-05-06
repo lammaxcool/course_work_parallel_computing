@@ -23,10 +23,10 @@ if __name__ == '__main__':
         root = Path(zip_obj, at=path)
         files_to_cp = sorted(list(root.iterdir()), 
                              key=lambda x: int(x.name.split('_')[0]))[0 : 10]
-
+        prefix = '_'.join(path[:-1].split('/')[-2:])
         for file in files_to_cp:
             curr_path = path + file.name
-            with open(dest_path + file.name, 'wb') as dest_file:
+            with open(dest_path + prefix + '_' + file.name, 'wb') as dest_file:
                 with zip_obj.open(curr_path, 'r') as origin_file:
                     dest_file.write(origin_file.read())
     

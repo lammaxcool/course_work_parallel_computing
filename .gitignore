@@ -12,6 +12,7 @@
 .idea/**/usage.statistics.xml
 .idea/**/dictionaries
 .idea/**/shelf
+.idea/
 
 # Generated files
 .idea/**/contentModel.xml
@@ -280,7 +281,9 @@ Thumbs.db
 
 # End of https://www.toptal.com/developers/gitignore/api/intellij,java,python
 
-
 # Project input and output data
 data/
 *.zip
+
+# Project *.iml
+*.iml

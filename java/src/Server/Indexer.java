@@ -15,7 +15,7 @@ public class Indexer {
 
         IndexService service = new IndexService("data");
         service.initIndex();
-        System.out.println("Done");
+        System.out.println(service.getFilesByWords("today"));
     }
 
 
@@ -42,7 +42,7 @@ class IndexService {
             "what", "when", "where", "which", "while", "who", "whom", "why",
             "will", "with", "would", "yet", "you", "your"};
     private String regex = "([^a-zA-Z`']+)'*\\1*";
-    private final Map<String, Set<String>> index = new HashMap<>();
+    private Map<String, Set<String>> index = null;
 
     IndexService(String filesPath, String regex) {
         this.filesPath = filesPath;
@@ -70,6 +70,7 @@ class IndexService {
     }
 
     public void initIndex() {
+        index = new HashMap<>();
         Stream.of(files)
             .forEach(file -> {
                 try {
@@ -93,5 +94,16 @@ class IndexService {
                     e.printStackTrace();
                 }
             });
+    }
+
+    public List<Set<String>> getFilesByWords(String... words) {
+        if (index == null) {
+            return null;
+        }
+        List<Set<String>> result = new LinkedList<>();
+        for (String word : words) {
+            result.add(index.get(word));
+        }
+        return result;
     }
 }

@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.stream.IntStream;
@@ -112,18 +113,19 @@ class IndexService {
         void indexFile(Path file) {
             try {
                 String text = Files.readString(file);
-                text = text.toLowerCase();
                 Set<String> words = new HashSet<>();
                 Collections.addAll(words, text.split(regex));
-                words.removeAll(stopWords);
                 String fileName = file.getFileName().toString();
                 for (String word : words) {
-                    if (index.get(word) == null) {
-                        Set<String> set = new ConcurrentSkipListSet<>();
-                        set.add(fileName);
-                        index.put(word, set);
-                    }
+                    word = word.toLowerCase();
+                    if (!stopWords.contains(word)) {
+                        if (index.get(word) == null) {
+                            ConcurrentLinkedQueue<String> set = new ConcurrentLinkedQueue<>();
+                            set.add(fileName);
+                            index.put(word, set);
+                        }
                     index.get(word).add(fileName);
+                }
                 }
             } catch (Exception e) {
                 e.printStackTrace();

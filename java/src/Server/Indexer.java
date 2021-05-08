@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -17,12 +18,16 @@ public class Indexer {
 //        System.out.println(System.getProperty("user.dir"));
 
         IndexService service = new IndexService("data");
-        service.initIndex(3);
+        long startTime = System.nanoTime();
+        service.initIndex(4);
+        long elapsed = System.nanoTime() - startTime;
 
-        System.out.println(service.getFilesByWords("movie"));
-        System.out.println(service.getFilesByWords("today"));
-        System.out.println();
-        System.out.println(service.getFilesByWords("movie", "today"));
+        System.out.println("Time elapsed during indexing: " + elapsed / 1000000.0f + "ms");
+
+//        System.out.println(service.getFilesByWords("movie"));
+//        System.out.println(service.getFilesByWords("today"));
+//        System.out.println();
+//        System.out.println(service.getFilesByWords("movie", "today"));
     }
 }
 
@@ -30,7 +35,7 @@ class IndexService {
 
     private final String filesPath;
     private Path[] files;
-    private static final  String[] stopWords = {"a", "able", "about",
+    private static final  Set<String> stopWords = Set.of("a", "able", "about",
             "across", "after", "all", "almost", "also", "am", "among", "an",
             "and", "any", "are", "aren't", "as", "at", "be", "because", "been",
             "but", "by", "can", "cannot", "could", "couldn't", "dear", "did",
@@ -45,7 +50,7 @@ class IndexService {
             "the", "their", "them", "then", "there", "these", "they", "this",
             "tis", "to", "too", "twas", "us", "wants", "was", "wasn't", "we",
             "what", "when", "where", "which", "while", "who", "whom", "why",
-            "will", "with", "would", "yet", "you", "your"};
+            "will", "with", "would", "yet", "you", "your");
     private String regex = "([^a-zA-Z`']+)'*\\1*";
     private Map<String, Set<String>> index = null;
 
@@ -78,12 +83,13 @@ class IndexService {
         index = new ConcurrentHashMap<>();
         Thread[] threads = new Thread[threadsAmount];
 
-        IntStream.range(0, threadsAmount).forEach( i -> {
-                threads[i] = new IndexBuilder(
+        for (int i = 0; i < threadsAmount; ++i) {
+            threads[i] = new IndexBuilder(
                     files.length / threadsAmount * i,
                     i == (threadsAmount - 1) ? files.length : files.length / threadsAmount * (i + 1)
-                );
-            });
+            );
+            threads[i].start();
+        }
 
         try {
             for (Thread thread : threads) {
@@ -101,19 +107,21 @@ class IndexService {
         IndexBuilder(int startIndex, int endIndex) {
             this.startIndex = startIndex;
             this.endIndex = endIndex;
-            this.start();
         }
 
         void indexFile(Path file) {
             try {
                 String text = Files.readString(file);
                 text = text.toLowerCase();
-                Set<String> words = new HashSet<>(Arrays.asList(text.split(regex)));
-                words.removeAll(Arrays.asList(stopWords));
+                Set<String> words = new HashSet<>();
+                Collections.addAll(words, text.split(regex));
+                words.removeAll(stopWords);
+                String fileName = file.getFileName().toString();
                 for (String word : words) {
-                    String fileName = file.getFileName().toString();
-                    if (!index.containsKey(word)) {
-                        index.put(word, new ConcurrentSkipListSet<>(Set.of(fileName)));
+                    if (index.get(word) == null) {
+                        Set<String> set = new ConcurrentSkipListSet<>();
+                        set.add(fileName);
+                        index.put(word, set);
                     }
                     index.get(word).add(fileName);
                 }
@@ -123,12 +131,10 @@ class IndexService {
         }
 
         public void run() {
-            IntStream.range(startIndex, endIndex)
-                .forEach( fileIndex -> {
-                    Path file = files[fileIndex];
-                    indexFile(file);
-                });
-
+            for (int i = startIndex; i < endIndex; ++i) {
+                Path file = files[i];
+                indexFile(file);
+            }
         }
     }
 

@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class Indexer {
@@ -15,8 +16,8 @@ public class Indexer {
 
 //        System.out.println(System.getProperty("user.dir"));
 
-        IndexService service = new IndexService("data", 1);
-        service.initIndex();
+        IndexService service = new IndexService("data");
+        service.initIndex(3);
         System.out.println(service.getFilesByWords("movie", "today"));
     }
 }
@@ -43,18 +44,15 @@ class IndexService {
             "will", "with", "would", "yet", "you", "your"};
     private String regex = "([^a-zA-Z`']+)'*\\1*";
     private Map<String, Set<String>> index = null;
-    private final int threadsAmount;
 
-    IndexService(String filesPath, String regex, int threadsAmount) {
+    IndexService(String filesPath, String regex) {
         this.filesPath = filesPath;
         this.regex = regex;
-        this.threadsAmount = threadsAmount;
         initFiles();
     }
 
-    IndexService(String filesPath, int threadsAmount) {
+    IndexService(String filesPath) {
         this.filesPath = filesPath;
-        this.threadsAmount = threadsAmount;
         initFiles();
     }
 
@@ -72,30 +70,66 @@ class IndexService {
         }
     }
 
-    public void initIndex() {
+    public void initIndex(int threadsAmount) {
         index = new ConcurrentHashMap<>();
-        Stream.of(files)
-            .forEach(file -> {
-                try {
-                    System.out.println(file);
+        Thread[] threads = new Thread[threadsAmount];
+
+        IntStream.range(0, threadsAmount).forEach( i -> {
+                threads[i] = new IndexBuilder(
+                    files.length / threadsAmount * i,
+                    i == (threadsAmount - 1) ? files.length : files.length / threadsAmount * (i + 1)
+                );
+            });
+
+        try {
+            for (Thread thread : threads) {
+                thread.join();
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private class IndexBuilder extends Thread {
+        private final int startIndex;
+        private final int endIndex;
+
+        IndexBuilder(int startIndex, int endIndex) {
+            this.startIndex = startIndex;
+            this.endIndex = endIndex;
+            this.start();
+        }
+
+        void indexFile(Path file) {
+            try {
+                System.out.println(file);
 //                    System.out.println(file.getFileName());
 
-                    String text = Files.readString(file);
-                    text = text.toLowerCase();
-                    Set<String> words = new HashSet<>(Arrays.asList(text.split(regex)));
-                    words.removeAll(Arrays.asList(stopWords));
-                    for (String word : words) {
-                        String fileName = file.getFileName().toString();
-                        if (!index.containsKey(word)) {
-                            index.put(word, new ConcurrentSkipListSet<>(Set.of(fileName)));
-                        }
-                        index.get(word).add(fileName);
+                String text = Files.readString(file);
+                text = text.toLowerCase();
+                Set<String> words = new HashSet<>(Arrays.asList(text.split(regex)));
+                words.removeAll(Arrays.asList(stopWords));
+                for (String word : words) {
+                    String fileName = file.getFileName().toString();
+                    if (!index.containsKey(word)) {
+                        index.put(word, new ConcurrentSkipListSet<>(Set.of(fileName)));
                     }
-                    System.out.println();
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    index.get(word).add(fileName);
                 }
-            });
+                System.out.println();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        public void run() {
+            IntStream.range(startIndex, endIndex)
+                .forEach( fileIndex -> {
+                    Path file = files[fileIndex];
+                    indexFile(file);
+                });
+
+        }
     }
 
     public List<Set<String>> getFilesByWords(String... words) {

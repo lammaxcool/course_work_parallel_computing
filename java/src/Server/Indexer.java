@@ -52,7 +52,7 @@ class IndexService {
             "what", "when", "where", "which", "while", "who", "whom", "why",
             "will", "with", "would", "yet", "you", "your");
     private String regex = "([^a-zA-Z`']+)'*\\1*";
-    private Map<String, Set<String>> index = null;
+    private Map<String, Collection<String>> index = null;
 
     IndexService(String filesPath, String regex) {
         this.filesPath = filesPath;
@@ -65,7 +65,7 @@ class IndexService {
         initFiles();
     }
 
-    public Map<String, Set<String>> getIndex() {
+    public Map<String, Collection<String>> getIndex() {
         return index;
     }
 
@@ -138,14 +138,14 @@ class IndexService {
         }
     }
 
-    public Set<String> getFilesByWords(String... words) {
+    public Collection<String> getFilesByWords(String... words) {
         if (index == null) {
             return null;
         }
         if (words.length == 1) {
             return index.get(words[0]);
         }
-        List<Set<String>> result = new LinkedList<>();
+        List<Collection<String>> result = new LinkedList<>();
         for (String word : words) {
             result.add(index.get(word));
         }

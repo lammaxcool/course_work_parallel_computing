@@ -18,6 +18,10 @@ public class Indexer {
 
         IndexService service = new IndexService("data");
         service.initIndex(3);
+
+        System.out.println(service.getFilesByWords("movie"));
+        System.out.println(service.getFilesByWords("today"));
+        System.out.println();
         System.out.println(service.getFilesByWords("movie", "today"));
     }
 }
@@ -132,14 +136,18 @@ class IndexService {
         }
     }
 
-    public List<Set<String>> getFilesByWords(String... words) {
+    public Set<String> getFilesByWords(String... words) {
         if (index == null) {
             return null;
+        }
+        if (words.length == 1) {
+            return index.get(words[0]);
         }
         List<Set<String>> result = new LinkedList<>();
         for (String word : words) {
             result.add(index.get(word));
         }
-        return result;
+        result.forEach(set -> result.get(0).retainAll(set));
+        return result.get(0);
     }
 }

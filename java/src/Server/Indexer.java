@@ -106,9 +106,6 @@ class IndexService {
 
         void indexFile(Path file) {
             try {
-                System.out.println(file);
-//                    System.out.println(file.getFileName());
-
                 String text = Files.readString(file);
                 text = text.toLowerCase();
                 Set<String> words = new HashSet<>(Arrays.asList(text.split(regex)));
@@ -120,7 +117,6 @@ class IndexService {
                     }
                     index.get(word).add(fileName);
                 }
-                System.out.println();
             } catch (Exception e) {
                 e.printStackTrace();
             }

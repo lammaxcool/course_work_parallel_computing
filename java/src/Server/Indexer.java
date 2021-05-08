@@ -5,6 +5,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Stream;
 
 public class Indexer {
@@ -13,12 +15,10 @@ public class Indexer {
 
 //        System.out.println(System.getProperty("user.dir"));
 
-        IndexService service = new IndexService("data");
+        IndexService service = new IndexService("data", 1);
         service.initIndex();
-        System.out.println(service.getFilesByWords("today"));
+        System.out.println(service.getFilesByWords("movie", "today"));
     }
-
-
 }
 
 class IndexService {
@@ -43,15 +43,18 @@ class IndexService {
             "will", "with", "would", "yet", "you", "your"};
     private String regex = "([^a-zA-Z`']+)'*\\1*";
     private Map<String, Set<String>> index = null;
+    private final int threadsAmount;
 
-    IndexService(String filesPath, String regex) {
+    IndexService(String filesPath, String regex, int threadsAmount) {
         this.filesPath = filesPath;
         this.regex = regex;
+        this.threadsAmount = threadsAmount;
         initFiles();
     }
 
-    IndexService(String filesPath) {
+    IndexService(String filesPath, int threadsAmount) {
         this.filesPath = filesPath;
+        this.threadsAmount = threadsAmount;
         initFiles();
     }
 
@@ -70,7 +73,7 @@ class IndexService {
     }
 
     public void initIndex() {
-        index = new HashMap<>();
+        index = new ConcurrentHashMap<>();
         Stream.of(files)
             .forEach(file -> {
                 try {
@@ -84,11 +87,10 @@ class IndexService {
                     for (String word : words) {
                         String fileName = file.getFileName().toString();
                         if (!index.containsKey(word)) {
-                            index.put(word, new HashSet<>(Set.of(fileName)));
+                            index.put(word, new ConcurrentSkipListSet<>(Set.of(fileName)));
                         }
                         index.get(word).add(fileName);
                     }
-
                     System.out.println();
                 } catch (Exception e) {
                     e.printStackTrace();

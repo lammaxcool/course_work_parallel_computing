@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Indexer {
@@ -17,7 +18,7 @@ public class Indexer {
 
         long startTime = System.nanoTime();
         IndexService service = new IndexService("data");
-        service.initIndex(1);
+        service.initIndex(4);
         long elapsed = System.nanoTime() - startTime;
 
         System.out.println("Time elapsed during indexing: " + elapsed / 1000000.0f + "ms");
@@ -78,7 +79,7 @@ class IndexService {
     }
 
     public void initIndex(int threadsAmount) {
-        index = new ConcurrentHashMap<>();
+        index = new ConcurrentHashMap<>(32768, 0.75f, threadsAmount);
         Thread[] threads = new Thread[threadsAmount];
 
         for (int i = 0; i < threadsAmount; ++i) {
@@ -115,13 +116,7 @@ class IndexService {
                 for (String word : words) {
                     word = word.toLowerCase();
                     if (!stopWords.contains(word)) {
-                        if (index.get(word) == null) {
-                            ConcurrentLinkedQueue<String> collection = new ConcurrentLinkedQueue<>();
-                            collection.add(fileName);
-                            index.put(word, collection);
-                        } else {
-                            index.get(word).add(fileName);
-                        }
+                        index.computeIfAbsent(word, (key) -> new ConcurrentLinkedQueue<>()).add(fileName);
                     }
                 }
             } catch (Exception e) {

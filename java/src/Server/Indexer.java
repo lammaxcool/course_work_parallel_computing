@@ -7,9 +7,6 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class Indexer {
@@ -18,9 +15,9 @@ public class Indexer {
 
 //        System.out.println(System.getProperty("user.dir"));
 
-        IndexService service = new IndexService("data");
         long startTime = System.nanoTime();
-        service.initIndex(4);
+        IndexService service = new IndexService("data");
+        service.initIndex(1);
         long elapsed = System.nanoTime() - startTime;
 
         System.out.println("Time elapsed during indexing: " + elapsed / 1000000.0f + "ms");
@@ -119,9 +116,9 @@ class IndexService {
                     word = word.toLowerCase();
                     if (!stopWords.contains(word)) {
                         if (index.get(word) == null) {
-                            ConcurrentLinkedQueue<String> set = new ConcurrentLinkedQueue<>();
-                            set.add(fileName);
-                            index.put(word, set);
+                            ConcurrentLinkedQueue<String> collection = new ConcurrentLinkedQueue<>();
+                            collection.add(fileName);
+                            index.put(word, collection);
                         } else {
                             index.get(word).add(fileName);
                         }

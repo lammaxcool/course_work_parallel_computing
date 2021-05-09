@@ -7,6 +7,8 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -49,18 +51,22 @@ class IndexService {
             "the", "their", "them", "then", "there", "these", "they", "this",
             "tis", "to", "too", "twas", "us", "wants", "was", "wasn't", "we",
             "what", "when", "where", "which", "while", "who", "whom", "why",
-            "will", "with", "would", "yet", "you", "your");
-    private String regex = "([^a-zA-Z`']+)'*\\1*";
+            "will", "with", "would", "yet", "you", "your", "i've");
+    private final String regex;
+    private final Pattern pattern;
     private Map<String, Collection<String>> index = null;
 
     IndexService(String filesPath, String regex) {
         this.filesPath = filesPath;
         this.regex = regex;
+        this.pattern = Pattern.compile(regex);
         initFiles();
     }
 
     IndexService(String filesPath) {
         this.filesPath = filesPath;
+        this.regex = "(?!\\d)\\w+([-'`]*\\w+)*";
+        this.pattern = Pattern.compile(regex);
         initFiles();
     }
 
@@ -110,14 +116,15 @@ class IndexService {
         void indexFile(Path file) {
             try {
                 String text = Files.readString(file);
-                Set<String> words = new HashSet<>();
-                Collections.addAll(words, text.split(regex));
+                Set<String> words = new HashSet<>(512);
+                Matcher matcher = pattern.matcher(text);
+                while(matcher.find()) {
+                    words.add(matcher.group().toLowerCase(Locale.ROOT));
+                }
+                words.removeAll(stopWords);
                 String fileName = file.getFileName().toString();
                 for (String word : words) {
-                    word = word.toLowerCase();
-                    if (!stopWords.contains(word)) {
-                        index.computeIfAbsent(word, (key) -> new ConcurrentLinkedQueue<>()).add(fileName);
-                    }
+                    index.computeIfAbsent(word, (key) -> new ConcurrentLinkedQueue<>()).add(fileName);
                 }
             } catch (Exception e) {
                 e.printStackTrace();

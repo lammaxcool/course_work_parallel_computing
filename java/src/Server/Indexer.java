@@ -91,7 +91,6 @@ class IndexService {
             );
             threads[i].start();
         }
-
         try {
             for (Thread thread : threads) {
                 thread.join();
@@ -123,9 +122,10 @@ class IndexService {
                             ConcurrentLinkedQueue<String> set = new ConcurrentLinkedQueue<>();
                             set.add(fileName);
                             index.put(word, set);
+                        } else {
+                            index.get(word).add(fileName);
                         }
-                    index.get(word).add(fileName);
-                }
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();

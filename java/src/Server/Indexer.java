@@ -1,5 +1,6 @@
 package Server;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,7 +36,7 @@ public class Indexer {
 class IndexService {
 
     private final String filesPath;
-    private Path[] files;
+    private File[] files;
     private static final  Set<String> stopWords = Set.of("a", "able", "about",
             "across", "after", "all", "almost", "also", "am", "among", "an",
             "and", "any", "are", "aren't", "as", "at", "be", "because", "been",
@@ -75,13 +76,8 @@ class IndexService {
     }
 
     private void initFiles() {
-        try (Stream<Path> paths = Files.walk(Paths.get(filesPath))) {
-            this.files = paths
-                    .filter(Files::isRegularFile)
-                    .toArray(Path[]::new);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            File root = new File(filesPath);
+            files = root.listFiles();
     }
 
     public void initIndex(int threadsAmount) {
@@ -133,7 +129,7 @@ class IndexService {
 
         public void run() {
             for (int i = startIndex; i < endIndex; ++i) {
-                Path file = files[i];
+                Path file = files[i].toPath();
                 indexFile(file);
             }
         }

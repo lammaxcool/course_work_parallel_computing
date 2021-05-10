@@ -9,27 +9,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Indexer {
-
-    public static void main(String[] args) {
-
-//        System.out.println(System.getProperty("user.dir"));
-
-        long startTime = System.nanoTime();
-        IndexService service = new IndexService("data");
-        service.initIndex(4);
-        long elapsed = System.nanoTime() - startTime;
-
-        System.out.println("Time elapsed during indexing: " + elapsed / 1000000.0f + "ms");
-
-//        System.out.println(service.getFilesByWords("movie"));
-//        System.out.println(service.getFilesByWords("today"));
-//        System.out.println();
-//        System.out.println(service.getFilesByWords("movie", "today"));
-    }
-}
-
-class IndexService {
+class Indexer {
 
     private final String filesPath;
     private File[] files;
@@ -48,19 +28,19 @@ class IndexService {
             "the", "their", "them", "then", "there", "these", "they", "this",
             "tis", "to", "too", "twas", "us", "wants", "was", "wasn't", "we",
             "what", "when", "where", "which", "while", "who", "whom", "why",
-            "will", "with", "would", "yet", "you", "your", "i've");
+            "will", "with", "would", "yet", "you", "your", "i've", "it's");
     private final String regex;
     private final Pattern pattern;
     private Map<String, Collection<String>> index = null;
 
-    IndexService(String filesPath, String regex) {
+    Indexer(String filesPath, String regex) {
         this.filesPath = filesPath;
         this.regex = regex;
         this.pattern = Pattern.compile(regex);
         initFiles();
     }
 
-    IndexService(String filesPath) {
+    Indexer(String filesPath) {
         this.filesPath = filesPath;
         this.regex = "(?!\\d)\\w+([-'`]*\\w+)*";
         this.pattern = Pattern.compile(regex);

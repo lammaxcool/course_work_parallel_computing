@@ -46,7 +46,7 @@ public class Server {
 class ClientHandler extends Thread {
 
     private Socket clientSocket;
-    private Indexer indexer;
+    private Index index;
 
     private ObjectInputStream in;
     private ObjectOutputStream out;

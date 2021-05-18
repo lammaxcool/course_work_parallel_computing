@@ -1,38 +1,43 @@
 package Server;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 public class Server {
 
     private static ServerSocket serverSocket;
     private static int port = 2021;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         // choose port or default 2021
         if (args.length > 0) {
             port = Integer.parseInt(args[0]);
         }
+
+        System.out.println("Server is running on port " + port);
+        serverSocket = new ServerSocket(port);
+
         // client handling
         try {
-            serverSocket = new ServerSocket(port);
-            while (true)
-                // run new thread with client handler
-                try {
-                    new ClientHandler(serverSocket.accept()).start();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-        } catch (IOException e) {
-            e.printStackTrace();
+            while (true) {
+                // wait for connection
+                Socket clientSocket = serverSocket.accept();
+                // start handler
+                ClientHandler clientHandler = new ClientHandler(clientSocket);
+                clientHandler.start();
+            }
         } finally {
-            stop();
+            serverSocket.close();
         }
     }
+
     // shutdown server
     public static void stop() {
         try {
@@ -45,16 +50,21 @@ public class Server {
 
 class ClientHandler extends Thread {
 
-    private Socket clientSocket;
+    private final Socket clientSocket;
     private Index index;
 
-    private ObjectInputStream in;
-    private ObjectOutputStream out;
+    private ObjectInputStream inStream;
+    private ObjectOutputStream outStream;
 
-    ClientHandler(Socket socket) throws IOException {
+    ClientHandler(Socket socket) {
         clientSocket = socket;
-        in = new ObjectInputStream(socket.getInputStream());
-        out = new ObjectOutputStream(socket.getOutputStream());
+        try {
+            outStream = new ObjectOutputStream(clientSocket.getOutputStream());
+            outStream.flush();
+            inStream = new ObjectInputStream(clientSocket.getInputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     // client send an array of words
@@ -62,8 +72,51 @@ class ClientHandler extends Thread {
     public void run() {
         // TODO: check if ObjectStream will works with interface
         //  and if not create Collection to LinkedList converter
+        System.out.println("Accepted client " + clientSocket);
+        System.out.println();
+        List<String> listToReceive;
+        // TODO: catch IOException '(for connection lost)'
+        listToReceive = receive();
+        if (listToReceive == null) {
+            System.out.println("Disconnected");
+            return;
+        }
+        System.out.println(listToReceive);
+        List<String> listToSend = new LinkedList<>();
+        listToSend.add("Hello from server");
+        // TODO: catch IOException '(for connection lost)'
+        send(listToSend);
+    }
+    
+    // TODO: throw IOException up
+    void send(Object obj) {
+        try {
+            outStream.writeObject(obj);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
+    // TODO: throw IOException up
+    <T> T receive() {
+        try {
+            return (T) inStream.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private void stopConnection() {
+        try {
+            if(!clientSocket.isClosed()) {
+                clientSocket.close();
+                inStream.close();
+                outStream.close();
+                this.interrupt();
+            }
+        } catch (IOException ignored) {}
+    }
 }
 
 class Index {

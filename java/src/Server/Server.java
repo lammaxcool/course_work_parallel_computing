@@ -1,6 +1,8 @@
 package Server;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Collection;
@@ -20,8 +22,11 @@ public class Server {
             serverSocket = new ServerSocket(port);
             while (true)
                 // run new thread with client handler
-                new ClientHandler(serverSocket.accept()).start();
-
+                try {
+                    new ClientHandler(serverSocket.accept()).start();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -43,12 +48,20 @@ class ClientHandler extends Thread {
     private Socket clientSocket;
     private Indexer indexer;
 
-    ClientHandler(Socket socket) {
+    private ObjectInputStream in;
+    private ObjectOutputStream out;
+
+    ClientHandler(Socket socket) throws IOException {
         clientSocket = socket;
+        in = new ObjectInputStream(socket.getInputStream());
+        out = new ObjectOutputStream(socket.getOutputStream());
     }
 
+    // client send an array of words
+    // and get List with results
     public void run() {
-        System.out.println("hello");
+        // TODO: check if ObjectStream will works with interface
+        //  and if not create Collection to LinkedList converter
     }
 
 }
@@ -62,7 +75,7 @@ class Index {
         indexer.initIndex(threadAmount);
     }
 
-    // use to create index and recreate
+    // use to create index and recreate index
     // or get instance
     public static Index getInstance(int threadAmount) {
         if (instance == null) {

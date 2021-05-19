@@ -34,8 +34,6 @@ class Client extends Thread {
     }
     // passed
     public void testConnection(String ip, int port) {
-        System.out.println("Client is running");
-        System.out.println("Trying to connect " + ip + ":" + port + "...");
         startConnection(ip, port);
 //        List<String> listToSend = new LinkedList<>();
 //        listToSend.add("Hello from client");
@@ -47,8 +45,6 @@ class Client extends Thread {
     }
     // passed
     void pingTest() {
-        System.out.println("Client is running");
-        System.out.println("Trying to connect " + ip + ":" + port + "...");
         startConnection(ip, port);
 
         while (true) {
@@ -67,6 +63,7 @@ class Client extends Thread {
     }
 
     private void startConnection(String ip, int port) {
+        System.out.println("Trying to connect " + ip + ":" + port + "...");
         try {
             clientSocket = new Socket(ip, port);
         } catch (IOException e) {

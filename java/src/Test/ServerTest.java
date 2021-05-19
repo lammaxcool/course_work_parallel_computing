@@ -32,7 +32,7 @@ class Client extends Thread {
         this.ip = ip;
         this.port = port;
     }
-
+    // passed
     public void testConnection(String ip, int port) {
         System.out.println("Client is running");
         System.out.println("Trying to connect " + ip + ":" + port + "...");
@@ -45,7 +45,7 @@ class Client extends Thread {
 //        System.out.println(listToReceive);
         stopConnection();
     }
-
+    // passed
     void pingTest() {
         System.out.println("Client is running");
         System.out.println("Trying to connect " + ip + ":" + port + "...");

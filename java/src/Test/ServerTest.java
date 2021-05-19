@@ -25,6 +25,8 @@ class Client extends Thread {
     private ObjectInputStream inStream;
     private ObjectOutputStream outStream;
 
+    private final Object pingObj = "";
+
     public Client(String ip, int port) {
         this.ip = ip;
         this.port = port;
@@ -74,6 +76,16 @@ class Client extends Thread {
             e.printStackTrace();
         }
         return null;
+    }
+
+    boolean ping() {
+        try {
+            inStream.readObject();
+            outStream.writeObject(pingObj);
+            return true;
+        } catch (IOException | ClassNotFoundException ignored) {
+            return false;
+        }
     }
 
     private void stopConnection() {

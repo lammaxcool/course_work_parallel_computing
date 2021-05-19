@@ -56,6 +56,8 @@ class ClientHandler extends Thread {
     private ObjectInputStream inStream;
     private ObjectOutputStream outStream;
 
+    private final Object pingObj = "";
+
     ClientHandler(Socket socket) {
         clientSocket = socket;
         try {
@@ -72,16 +74,25 @@ class ClientHandler extends Thread {
     public void run() {
         System.out.println("Accepted client " + clientSocket);
         System.out.println();
-        List<String> listToReceive;
-        listToReceive = receive();
-        if (listToReceive == null) {
-            System.out.println("Disconnected");
-            return;
+
+        while (true) {
+            ping();
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
-        System.out.println(listToReceive);
-        List<String> listToSend = new LinkedList<>();
-        listToSend.add("Hello from server");
-        send(listToSend);
+//        List<String> listToReceive;
+//        listToReceive = receive();
+//        if (listToReceive == null) {
+//            System.out.println("Disconnected");
+//            return;
+//        }
+//        System.out.println(listToReceive);
+//        List<String> listToSend = new LinkedList<>();
+//        listToSend.add("Hello from server");
+//        send(listToSend);
     }
 
     void send(Object obj) {
@@ -101,6 +112,15 @@ class ClientHandler extends Thread {
             stopConnection();
         }
         return null;
+    }
+
+    boolean ping() {
+        try {
+            outStream.writeObject(pingObj);
+            return inStream.readObject() != null;
+        } catch (IOException | ClassNotFoundException ignored) {
+            return false;
+        }
     }
 
     private void stopConnection() {

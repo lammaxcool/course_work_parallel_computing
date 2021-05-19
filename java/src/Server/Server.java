@@ -70,12 +70,9 @@ class ClientHandler extends Thread {
     // client send an array of words
     // and get List with results
     public void run() {
-        // TODO: check if ObjectStream will works with interface
-        //  and if not create Collection to LinkedList converter
         System.out.println("Accepted client " + clientSocket);
         System.out.println();
         List<String> listToReceive;
-        // TODO: catch IOException '(for connection lost)'
         listToReceive = receive();
         if (listToReceive == null) {
             System.out.println("Disconnected");
@@ -84,25 +81,24 @@ class ClientHandler extends Thread {
         System.out.println(listToReceive);
         List<String> listToSend = new LinkedList<>();
         listToSend.add("Hello from server");
-        // TODO: catch IOException '(for connection lost)'
         send(listToSend);
     }
-    
-    // TODO: throw IOException up
+
     void send(Object obj) {
         try {
             outStream.writeObject(obj);
         } catch (IOException e) {
             e.printStackTrace();
+            stopConnection();
         }
     }
 
-    // TODO: throw IOException up
     <T> T receive() {
         try {
             return (T) inStream.readObject();
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
+            stopConnection();
         }
         return null;
     }

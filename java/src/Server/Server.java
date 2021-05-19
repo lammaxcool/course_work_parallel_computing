@@ -7,6 +7,7 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -63,7 +64,7 @@ class ClientHandler extends Thread {
         clientSocket = socket;
         // set max wait timeout for reading
         try {
-            clientSocket.setSoTimeout(500);
+            clientSocket.setSoTimeout(1000);
         } catch (SocketException e) {
             e.printStackTrace();
         }
@@ -77,22 +78,33 @@ class ClientHandler extends Thread {
     }
 
     // client send an array of words
-    // and get List with results
+    // and get Array with results
     public void run() {
         System.out.println("Accepted client " + clientSocket);
         System.out.println();
 
+        // commands
+        //     * find
+        //     * init
         while (true) {
+            // check client connection
             if (ping()) {
-                System.out.println("ping");
+                // read command
+                try {
+                    String command = receive();
+                    if (command.equals("/find")) {
+                        String[] words = receive();
+                        List<String> result = (List<String>) index.getFilesByWords(words);
+                        send(result);
+                        System.out.println(result);
+                    }
+                } catch (SocketTimeoutException e) {
+                    stopConnection();
+                    break;
+                }
             } else {
                 stopConnection();
                 break;
-            }
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
         }
 //        List<String> listToReceive;
@@ -116,14 +128,12 @@ class ClientHandler extends Thread {
         }
     }
 
-    <T> T receive() {
+    <T> T receive() throws SocketTimeoutException {
         try {
             return (T) inStream.readObject();
         } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-            stopConnection();
+            throw new SocketTimeoutException();
         }
-        return null;
     }
 
     boolean ping() {
@@ -132,7 +142,7 @@ class ClientHandler extends Thread {
             outStream.writeObject(pingObj);
             try {
                 res = inStream.readObject() != null;
-            } catch (SocketException e) {
+            } catch (SocketTimeoutException e) {
                 res = false;
             }
         } catch (IOException | ClassNotFoundException ignored) {}

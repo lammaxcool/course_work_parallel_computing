@@ -1,9 +1,8 @@
 package Test;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -58,6 +57,27 @@ class Client extends Thread {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
+            }
+        }
+    }
+
+    void findTest() throws IOException {
+        startConnection(ip, port);
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+
+        while (true) {
+            String line = reader.readLine();
+            String[] lineValue = line.split(" ", 2);
+            if (lineValue.length < 2) {
+                System.out.println("Unknown command");
+                continue;
+            }
+            if  (lineValue[0].equals("/find")) {
+                send("/find");
+                send(lineValue[1].split(" "));
+                List<String> listToReceive = receive();
+                System.out.println(listToReceive);
             }
         }
     }

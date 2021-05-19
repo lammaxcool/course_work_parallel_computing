@@ -13,7 +13,8 @@ public class ServerTest {
         String ip = "localhost";
         int port = 2021;
         Client client = new Client(ip, port);
-        client.testConnection(ip, port);
+//        client.testConnection(ip, port);
+        client.pingTest();
     }
 }
 
@@ -43,6 +44,26 @@ class Client extends Thread {
 //        listToReceive = receive();
 //        System.out.println(listToReceive);
         stopConnection();
+    }
+
+    void pingTest() {
+        System.out.println("Client is running");
+        System.out.println("Trying to connect " + ip + ":" + port + "...");
+        startConnection(ip, port);
+
+        while (true) {
+            if (ping()) {
+                System.out.println("ping");
+            } else {
+                stopConnection();
+                break;
+            }
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private void startConnection(String ip, int port) {
@@ -96,5 +117,7 @@ class Client extends Thread {
                 outStream.close();
             }
         } catch (IOException ignored) {}
+
+        System.out.println("Disconnected");
     }
 }

@@ -6,6 +6,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -60,6 +61,12 @@ class ClientHandler extends Thread {
 
     ClientHandler(Socket socket) {
         clientSocket = socket;
+        // set max wait timeout for reading
+        try {
+            clientSocket.setSoTimeout(500);
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
         try {
             outStream = new ObjectOutputStream(clientSocket.getOutputStream());
             outStream.flush();
@@ -76,7 +83,12 @@ class ClientHandler extends Thread {
         System.out.println();
 
         while (true) {
-            ping();
+            if (ping()) {
+                System.out.println("ping");
+            } else {
+                stopConnection();
+                break;
+            }
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
@@ -115,12 +127,17 @@ class ClientHandler extends Thread {
     }
 
     boolean ping() {
+        boolean res = false;
         try {
             outStream.writeObject(pingObj);
-            return inStream.readObject() != null;
-        } catch (IOException | ClassNotFoundException ignored) {
-            return false;
-        }
+            try {
+                res = inStream.readObject() != null;
+            } catch (SocketException e) {
+                res = false;
+            }
+        } catch (IOException | ClassNotFoundException ignored) {}
+
+        return res;
     }
 
     private void stopConnection() {
@@ -129,9 +146,10 @@ class ClientHandler extends Thread {
                 clientSocket.close();
                 inStream.close();
                 outStream.close();
-                this.interrupt();
             }
         } catch (IOException ignored) {}
+
+        System.out.println("Disconnected " + clientSocket);
     }
 }
 

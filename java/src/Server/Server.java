@@ -97,7 +97,7 @@ class ClientHandler extends Thread {
                             e.printStackTrace();
                         }
                     }
-                } catch (SocketTimeoutException e) {
+                } catch (IOException e) {
                     stopConnection();
                     break;
                 }

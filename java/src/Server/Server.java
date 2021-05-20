@@ -11,6 +11,7 @@ import java.net.SocketTimeoutException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Server {
 
@@ -53,7 +54,7 @@ public class Server {
 class ClientHandler extends Thread {
 
     private final Socket clientSocket;
-    private Index index;
+    private final Index index;
 
     private ObjectInputStream inStream;
     private ObjectOutputStream outStream;
@@ -62,12 +63,7 @@ class ClientHandler extends Thread {
 
     ClientHandler(Socket socket) {
         clientSocket = socket;
-        // set max wait timeout for reading
-        try {
-            clientSocket.setSoTimeout(1000);
-        } catch (SocketException e) {
-            e.printStackTrace();
-        }
+        index = Index.getInstance();
         try {
             outStream = new ObjectOutputStream(clientSocket.getOutputStream());
             outStream.flush();
@@ -81,7 +77,6 @@ class ClientHandler extends Thread {
     // and get Array with results
     public void run() {
         System.out.println("Accepted client " + clientSocket);
-        System.out.println();
 
         // commands
         //     * find
@@ -94,9 +89,13 @@ class ClientHandler extends Thread {
                     String command = receive();
                     if (command.equals("/find")) {
                         String[] words = receive();
-                        List<String> result = (List<String>) index.getFilesByWords(words);
-                        send(result);
-                        System.out.println(result);
+                        try {
+                            Collection<String> result = (Collection<String>) index.getFilesByWords(words);
+                            send(result);
+                            System.out.println(result);
+                        } catch (NullPointerException e) {
+                            e.printStackTrace();
+                        }
                     }
                 } catch (SocketTimeoutException e) {
                     stopConnection();
@@ -107,21 +106,12 @@ class ClientHandler extends Thread {
                 break;
             }
         }
-//        List<String> listToReceive;
-//        listToReceive = receive();
-//        if (listToReceive == null) {
-//            System.out.println("Disconnected");
-//            return;
-//        }
-//        System.out.println(listToReceive);
-//        List<String> listToSend = new LinkedList<>();
-//        listToSend.add("Hello from server");
-//        send(listToSend);
     }
 
     void send(Object obj) {
         try {
             outStream.writeObject(obj);
+            outStream.flush();
         } catch (IOException e) {
             e.printStackTrace();
             stopConnection();
@@ -142,9 +132,7 @@ class ClientHandler extends Thread {
             outStream.writeObject(pingObj);
             try {
                 res = inStream.readObject() != null;
-            } catch (SocketTimeoutException e) {
-                res = false;
-            }
+            } catch (SocketTimeoutException ignored) {}
         } catch (IOException | ClassNotFoundException ignored) {}
 
         return res;

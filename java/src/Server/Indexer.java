@@ -52,8 +52,8 @@ class Indexer {
     }
 
     private void initFiles() {
-            File root = new File(filesPath);
-            files = root.listFiles();
+        File root = new File(System.getProperty("user.dir") + "/" + filesPath);
+        files = root.listFiles();
     }
 
     public void initIndex(int threadsAmount) {
@@ -122,7 +122,8 @@ class Indexer {
         for (String word : words) {
             result.add(index.get(word));
         }
-        result.forEach(set -> result.get(0).retainAll(set));
-        return result.get(0);
+        Collection<String> first = new LinkedList<>(result.remove(0));
+        result.forEach(first::retainAll);
+        return first;
     }
 }

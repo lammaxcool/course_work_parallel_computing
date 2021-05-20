@@ -74,13 +74,13 @@ class ClientHandler extends Thread {
     }
 
     // client send an array of words
-    // and get Array with results
+    // and get Collection with results
     public void run() {
         System.out.println("Accepted client " + clientSocket);
 
         // commands
         //     * find
-        //     * init
+        //     * exit
         while (true) {
             // check client connection
             if (ping()) {
@@ -96,6 +96,9 @@ class ClientHandler extends Thread {
                         } catch (NullPointerException e) {
                             e.printStackTrace();
                         }
+                    } else if (command.equals("/exit")) {
+                        stopConnection();
+                        break;
                     }
                 } catch (IOException e) {
                     stopConnection();

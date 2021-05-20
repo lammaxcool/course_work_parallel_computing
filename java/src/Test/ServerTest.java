@@ -8,12 +8,13 @@ import java.util.List;
 
 public class ServerTest {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         String ip = "localhost";
         int port = 2021;
         Client client = new Client(ip, port);
 //        client.testConnection(ip, port);
-        client.pingTest();
+//        client.pingTest();
+        client.findTest();
     }
 }
 
@@ -67,17 +68,22 @@ class Client extends Thread {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
         while (true) {
-            String line = reader.readLine();
-            String[] lineValue = line.split(" ", 2);
-            if (lineValue.length < 2) {
-                System.out.println("Unknown command");
-                continue;
-            }
-            if  (lineValue[0].equals("/find")) {
-                send("/find");
-                send(lineValue[1].split(" "));
-                List<String> listToReceive = receive();
-                System.out.println(listToReceive);
+            if (ping()) {
+                String line = reader.readLine();
+                String[] lineValue = line.split(" ", 2);
+                if (lineValue.length < 2) {
+                    System.out.println("Unknown command");
+                    continue;
+                }
+                if  (lineValue[0].equals("/find")) {
+                    send("/find");
+                    send(lineValue[1].split(" "));
+                    List<String> listToReceive = receive();
+                    System.out.println(listToReceive);
+                }
+            } else {
+                stopConnection();
+                break;
             }
         }
     }

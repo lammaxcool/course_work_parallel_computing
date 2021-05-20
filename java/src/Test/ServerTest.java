@@ -62,7 +62,7 @@ class Client extends Thread {
             }
         }
     }
-
+    // passed
     void findTest() throws IOException {
         startConnection(ip, port);
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));

@@ -3,6 +3,7 @@ package Test;
 import java.io.*;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -35,12 +36,12 @@ class Client extends Thread {
     // passed
     public void testConnection(String ip, int port) {
         startConnection(ip, port);
-//        List<String> listToSend = new LinkedList<>();
-//        listToSend.add("Hello from client");
-//        send(listToSend);
-//        List<String> listToReceive;
-//        listToReceive = receive();
-//        System.out.println(listToReceive);
+        List<String> listToSend = new LinkedList<>();
+        listToSend.add("Hello from client");
+        send(listToSend);
+        List<String> listToReceive;
+        listToReceive = receive();
+        System.out.println(listToReceive);
         stopConnection();
     }
     // passed
@@ -64,7 +65,6 @@ class Client extends Thread {
 
     void findTest() throws IOException {
         startConnection(ip, port);
-
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
         while (true) {
@@ -78,8 +78,10 @@ class Client extends Thread {
                 if  (lineValue[0].equals("/find")) {
                     send("/find");
                     send(lineValue[1].split(" "));
-                    List<String> listToReceive = receive();
+                    Collection<String> listToReceive = receive();
                     System.out.println(listToReceive);
+                } else {
+                    System.out.println("Unknown command");
                 }
             } else {
                 stopConnection();
@@ -108,6 +110,7 @@ class Client extends Thread {
     private void send(Object obj) {
         try {
             outStream.writeObject(obj);
+            outStream.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }

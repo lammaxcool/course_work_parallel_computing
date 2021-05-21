@@ -60,7 +60,7 @@ class ClientService {
         return null;
     }
 
-    boolean ping() {
+    private boolean ping() {
         try {
             inStream.readObject();
             outStream.writeObject(pingObj);

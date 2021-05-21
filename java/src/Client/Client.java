@@ -22,6 +22,7 @@ public class Client {
             client.start();
         } catch (IOException e) {
             e.printStackTrace();
+            client.stopConnection();
         }
     }
 }
@@ -85,7 +86,7 @@ class ClientService {
         }
     }
 
-    private void startConnection(String ip, int port) {
+    void startConnection(String ip, int port) {
         System.out.println("Trying to connect " + ip + ":" + port + "...");
         try {
             clientSocket = new Socket(ip, port);
@@ -130,7 +131,7 @@ class ClientService {
         }
     }
 
-    private void stopConnection() {
+    void stopConnection() {
         try {
             if (!clientSocket.isClosed()) {
                 clientSocket.close();

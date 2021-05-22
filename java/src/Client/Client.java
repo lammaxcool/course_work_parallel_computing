@@ -3,6 +3,8 @@ package Client;
 import java.io.*;
 import java.net.Socket;
 import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 public class Client {
 
@@ -34,6 +36,7 @@ class ClientService {
             '/find word1 word2 ...' to find files contains this words
             '/exit' to exit  
             """;
+    private final Set<String> commandList = Set.of("/find", "/exit");
     private final String intro = "index: ";
     private Socket clientSocket;
     private final String ip;
@@ -59,6 +62,9 @@ class ClientService {
             String command = dividedUserLine[0];
             if (command.equals("")) {
                 continue;
+            } else if (!commandList.contains(command)) {
+                System.out.println("Unknown command");
+                continue;
             }
             if (ping()) {
                 if  (command.equals("/find")) {
@@ -76,8 +82,6 @@ class ClientService {
                     send("/exit");
                     stopConnection();
                     break;
-                } else {
-                    System.out.println("Unknown command");
                 }
             } else {
                 stopConnection();

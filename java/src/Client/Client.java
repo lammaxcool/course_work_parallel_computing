@@ -1,6 +1,7 @@
 package Client;
 
 import java.io.*;
+import java.net.ConnectException;
 import java.net.Socket;
 import java.util.Collection;
 import java.util.List;
@@ -22,7 +23,7 @@ public class Client {
 
         try {
             client.start();
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             client.stopConnection();
         }
@@ -51,7 +52,7 @@ class ClientService {
         this.port = port;
     }
 
-    public void start() throws IOException {
+    public void start() throws Exception {
         startConnection(ip, port);
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         System.out.println(instruction);
@@ -90,12 +91,12 @@ class ClientService {
         }
     }
 
-    void startConnection(String ip, int port) {
+    void startConnection(String ip, int port) throws Exception {
         System.out.println("Trying to connect " + ip + ":" + port + "...");
         try {
             clientSocket = new Socket(ip, port);
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            throw new Exception(e);
         }
         try {
             outStream = new ObjectOutputStream(clientSocket.getOutputStream());
@@ -137,7 +138,7 @@ class ClientService {
 
     void stopConnection() {
         try {
-            if (!clientSocket.isClosed()) {
+            if (clientSocket != null && !clientSocket.isClosed()) {
                 clientSocket.close();
                 inStream.close();
                 outStream.close();

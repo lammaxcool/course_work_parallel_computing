@@ -54,7 +54,7 @@ class ClientService {
     public void start() throws IOException {
         startConnection(ip, port);
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-
+        System.out.println(instruction);
         while (true) {
             System.out.print(intro);
             String userLine = reader.readLine();

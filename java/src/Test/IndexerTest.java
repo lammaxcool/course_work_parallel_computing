@@ -2,20 +2,46 @@ package Test;
 
 import Server.Indexer;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class IndexerTest {
+
+    static String outputFile = "result.txt";
+    static String[] folders = {"/2000", "/10000", "/100000"};
+    static int[] threadAmount = {1, 2, 4, 8, 10, 12, 14, 16};
+    static String format = "%-10s%-10s%-10s%10s";
+
     public static void main(String[] args) {
-        Indexer indexer1 = new Indexer("/data");
-        indexer1.initIndex(1);
+        long start;
+        int processTime;
+        Indexer oneThreadIndexer = null;
+        String str = String.format(format, "Files", "Threads", "Time (ms)", "Valid");
+        writeLine(outputFile, false, str);
 
-        Indexer indexer2 = new Indexer("/data");
-        indexer2.initIndex(2);
-
-        System.out.println(indexerEquals(indexer1, indexer2));
+        for (String folder : folders) {
+            writeLine(outputFile, true, String.format(format, folder, "", "", ""));
+            for (int i : threadAmount) {
+                Indexer indexer = new Indexer("/data" + folder);
+                start = System.nanoTime();
+                indexer.initIndex(i);
+                processTime = (int) ((System.nanoTime() - start)*1e-6);
+                if (i == 1) {
+                    oneThreadIndexer = indexer;
+                    writeLine(outputFile, true,
+                            String.format(format, "", i, processTime, ""));
+                } else {
+                    writeLine(outputFile, true,
+                            String.format(format, "", i, processTime,
+                                    indexerEquals(oneThreadIndexer, indexer)));
+                }
+            }
+        }
     }
 
     static boolean indexEquals(ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> index1,
@@ -54,5 +80,16 @@ public class IndexerTest {
         }
         // finally return true
         return true;
+    }
+
+    static void writeLine(String fileName, Boolean append, String formattedString) {
+        try {
+            Writer fileWriter = new FileWriter(fileName, append);
+            fileWriter.write(formattedString + "\n");
+            fileWriter.close();
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
     }
 }

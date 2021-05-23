@@ -117,7 +117,7 @@ public class Indexer {
         }
         if (words.length == 1) {
             Collection<String> files = index.get(words[0]);
-            return files == null ? new LinkedList<String>() : files;
+            return files == null ? new LinkedList<String>() : new LinkedList<String>(files);
         }
         List<Collection<String>> result = new LinkedList<>();
         for (String word : words) {

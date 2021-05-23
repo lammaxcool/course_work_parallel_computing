@@ -154,7 +154,7 @@ class Index {
     private final Indexer indexer;
 
     private Index(int threadAmount) {
-        indexer = new Indexer("/data");
+        indexer = new Indexer("/data/2000");
         indexer.initIndex(threadAmount);
     }
 

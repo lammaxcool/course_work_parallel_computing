@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class Indexer {
+public class Indexer {
 
     private final String filesPath;
     private File[] files;
@@ -33,14 +33,14 @@ class Indexer {
     private final Pattern pattern;
     private Map<String, Collection<String>> index = null;
 
-    Indexer(String filesPath, String regex) {
+    public Indexer(String filesPath, String regex) {
         this.filesPath = filesPath;
         this.regex = regex;
         this.pattern = Pattern.compile(regex);
         initFiles();
     }
 
-    Indexer(String filesPath) {
+    public Indexer(String filesPath) {
         this.filesPath = filesPath;
         this.regex = "(?!\\d)\\w+([-'`]*\\w+)*";
         this.pattern = Pattern.compile(regex);

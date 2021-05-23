@@ -70,16 +70,13 @@ public class IndexerTest {
             return false;
         }
         // check if each key has the same value
-        for (String key : keySet1) {
+        boolean result = keySet1.stream().parallel().anyMatch( key -> {
             Collection<String> collection1 = indexer1.getIndex().get(key);
             Collection<String> collection2 = indexer2.getIndex().get(key);
-            if (!(collection1.size() == collection2.size()
-                    && collection1.containsAll(collection2))) {
-                return false;
-            }
-        }
-        // finally return true
-        return true;
+            return (collection1.size() == collection2.size()
+                    && collection1.containsAll(collection2));
+        });
+        return result;
     }
 
     static void writeLine(String fileName, Boolean append, String formattedString) {

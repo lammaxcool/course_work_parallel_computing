@@ -172,8 +172,8 @@ class Index {
     // 4 threads by default
     // or get instance
     public static Index getInstance() {
-        if (instance == null) {
-            synchronized (Index.class) {
+        synchronized (Index.class) {
+            if (instance == null) {
                 instance = new Index(4);
             }
         }

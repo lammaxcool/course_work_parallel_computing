@@ -1,0 +1,28 @@
+Files     Threads   Time (ms)      Valid
+/2000                                   
+          1         1535                
+          2         696             true
+          4         645             true
+          8         338             true
+          10        240             true
+          12        212             true
+          14        223             true
+          16        196             true
+/10000                                  
+          1         2315                
+          2         1381            true
+          4         896             true
+          8         958             true
+          10        1008            true
+          12        911             true
+          14        911             true
+          16        936             true
+/100000                                 
+          1         665668              
+          2         13379           true
+          4         11442           true
+          8         10824           true
+          10        10496           true
+          12        10886           true
+          14        12314           true
+          16        11787           true
